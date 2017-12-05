@@ -11,6 +11,7 @@ using namespace glm;
 
 static const int DISPLAY_WIDTH = 800;
 static const int DISPLAY_HEIGHT = 800;
+static const int CUBE_SIZE = 3;
 
 int main(int argc, char** argv)
 {
@@ -68,7 +69,6 @@ int main(int argc, char** argv)
 							  23, 22, 20
 	                          };
     Mesh cube(vertices, sizeof(vertices)/sizeof(vertices[0]), indices, sizeof(indices)/sizeof(indices[0]));
-	Mesh monkey("./res/meshes/monkeyNoUV.obj");
 	Shader shader("./res/shaders/basicShader");
 	
 	vec3 pos = vec3(0, 0, -5);
@@ -78,25 +78,66 @@ int main(int argc, char** argv)
 	mat4 M = glm::rotate(45.0f, vec3(1, 1, 1));
 	//mar4 M = glm::mat4(1);
 	P = P * glm::lookAt(pos, pos + forward, up);
-	mat4 MVP;
-	glfwSetKeyCallback(display.m_window, key_callback);
+	
+	// Cubes:
+	mat4 ***cubes = new mat4**[CUBE_SIZE];
+	for (int i = 0; i < CUBE_SIZE; i++)
+	{
+		cubes[i] = new mat4*[CUBE_SIZE];
+		for (int j = 0; j < CUBE_SIZE; j++)
+		{
+			cubes[i][j] = new mat4[CUBE_SIZE];
+		}
+	}
+	
 
+	glfwSetKeyCallback(display.m_window, key_callback);
 
 	while (!glfwWindowShouldClose(display.m_window))
 	{
 		Sleep(3);
 		M = glm::rotate(M, 0.1f, up);
+		shader.Bind();
+
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				for (int k = 0; k < 3; k++)
+				{
+					cubes[i][j][k] = P*M;
+					cubes[i][j][k] = glm::translate(cubes[i][j][k], vec3((float(i)) / 3.0, (float(i)) / 3.0, (float(i)) / 3.0));
+					cubes[i][j][k] = glm::scale(cubes[i][j][k], vec3(0.3, 0.3, 0.3));
+					display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
+
+					shader.Update(cubes[i][j][k], M);
+					cube.Draw();
+				}
+			}
+		}
+
+
+		/*mat4 MVP;
 		MVP = P*M;
+		MVP = glm::translate(MVP, vec3(0.0, 0.0, 0.0));
+		MVP = glm::scale(MVP, vec3(0.3, 0.3, 0.3));
 		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
-		shader.Bind();
-		shader.Update(MVP, M);
+		mat4 MVP2;
+		MVP2 = P*M;
+		MVP2 = glm::translate(MVP2, vec3(1.0, 0.0, 0.0));
+		MVP2 = glm::scale(MVP2, vec3(0.3, 0.3, 0.3));
+		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
-		//monkey.Draw();
+		//shader.Bind();
+		shader.Update(MVP, M);
 		cube.Draw();
 
-		display.SwapBuffers();
+		shader.Update(MVP2, M);
+		cube.Draw();*/
 
+
+		display.SwapBuffers();
 		glfwPollEvents();
 	}
 
