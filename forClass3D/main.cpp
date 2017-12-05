@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 							  22, 21, 20,
 							  23, 22, 20
 	                          };
-    //Mesh mesh(vertices, sizeof(vertices)/sizeof(vertices[0]), indices, sizeof(indices)/sizeof(indices[0]));
+    Mesh mesh(vertices, sizeof(vertices)/sizeof(vertices[0]), indices, sizeof(indices)/sizeof(indices[0]));
 	Mesh monkey("./res/meshes/monkeyNoUV.obj");
 	Shader shader("./res/shaders/basicShader");
 	
@@ -91,8 +91,8 @@ int main(int argc, char** argv)
 		shader.Bind();
 		shader.Update(MVP,M);
 
-		monkey.Draw();
-		//mesh.Draw();
+		//monkey.Draw();
+		mesh.Draw();
 
 
 		display.SwapBuffers();

@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2ED7311E-9895-45F6-962E-03BB0BEACA49}</ProjectGuid>
     <RootNamespace>forClass3D</RootNamespace>
+    <ProjectName>RubiksCube</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
