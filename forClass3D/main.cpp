@@ -6,12 +6,12 @@
 #include "inputManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include "Cube.h"
 
 using namespace glm;
 
 static const int DISPLAY_WIDTH = 800;
 static const int DISPLAY_HEIGHT = 800;
-static const int CUBE_SIZE = 3;
 
 int main(int argc, char** argv)
 {
@@ -34,20 +34,20 @@ int main(int argc, char** argv)
 		Vertex(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(0, -1, 0),glm::vec3(1, 0, 0)),
 		Vertex(glm::vec3(1, -1, -1), glm::vec2(0, 0), glm::vec3(0, -1, 0),glm::vec3(1, 0, 0)),
 
-		Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 1, 0),glm::vec3(1, 1, 1)),
-		Vertex(glm::vec3(-1, 1, 1), glm::vec2(1, 1), glm::vec3(0, 1, 0),glm::vec3(1, 1, 1)),
-		Vertex(glm::vec3(1, 1, 1), glm::vec2(1, 0), glm::vec3(0, 1, 0),glm::vec3(1, 1, 1)),
-		Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 0), glm::vec3(0, 1, 0),glm::vec3(1, 1, 1)),
+		Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 1, 0),glm::vec3(1, 0.5, 0.5)),
+		Vertex(glm::vec3(-1, 1, 1), glm::vec2(1, 1), glm::vec3(0, 1, 0),glm::vec3(1, 0.5, 0.5)),
+		Vertex(glm::vec3(1, 1, 1), glm::vec2(1, 0), glm::vec3(0, 1, 0),glm::vec3(1, 0.5, 0.5)),
+		Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 0), glm::vec3(0, 1, 0),glm::vec3(1, 0.5 , 0.5)),
 
 		Vertex(glm::vec3(-1, -1, -1), glm::vec2(1, 1), glm::vec3(-1, 0, 0),glm::vec3(1, 1, 0)),
 		Vertex(glm::vec3(-1, -1, 1), glm::vec2(1, 0), glm::vec3(-1, 0, 0),glm::vec3(1, 1, 0)),
 		Vertex(glm::vec3(-1, 1, 1), glm::vec2(0, 0), glm::vec3(-1, 0, 0),glm::vec3(1, 1, 0)),
 		Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(-1, 0, 0),glm::vec3(1, 1, 0)),
 
-		Vertex(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(1, 0, 0),glm::vec3(1, 0.5, 0)),
-		Vertex(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(1, 0, 0),glm::vec3(1, 0.5, 0)),
-		Vertex(glm::vec3(1, 1, 1), glm::vec2(0, 0), glm::vec3(1, 0, 0),glm::vec3(1, 0.5, 0)),
-		Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(1, 0, 0),glm::vec3(1, 0.5, 0))
+		Vertex(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(1, 0, 0),glm::vec3(0.5, 0.5, 0.5)),
+		Vertex(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(1, 0, 0),glm::vec3(0.5, 0.5, 0.5)),
+		Vertex(glm::vec3(1, 1, 1), glm::vec2(0, 0), glm::vec3(1, 0, 0),glm::vec3(0.5, 0.5, 0.5)),
+		Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(1, 0, 0),glm::vec3(0.5, 0.5, 0.5))
 	};
 
 	unsigned int indices[] = {0, 1, 2,
@@ -68,74 +68,80 @@ int main(int argc, char** argv)
 							  22, 21, 20,
 							  23, 22, 20
 	                          };
-    Mesh cube(vertices, sizeof(vertices)/sizeof(vertices[0]), indices, sizeof(indices)/sizeof(indices[0]));
+
+
+    Mesh cubeMesh(vertices, sizeof(vertices)/sizeof(vertices[0]), indices, sizeof(indices)/sizeof(indices[0]));
+	//Mesh cube("./res/meshes/testBoxNoUV.obj");
 	Shader shader("./res/shaders/basicShader");
 	
-	vec3 pos = vec3(0, 0, -5);
+	vec3 pos = -vec3(0, 0, 3 * MATRIX_SIZE * CUBE_SIZE);
 	vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
 	vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-	mat4 P = glm::perspective(60.0f, (float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT, 0.1f, 100.0f);
-	mat4 M = glm::rotate(45.0f, vec3(1, 1, 1));
-	//mar4 M = glm::mat4(1);
+	P = glm::perspective(60.0f, float(DISPLAY_WIDTH) / float(DISPLAY_HEIGHT), 0.1f, 100.0f);
+	//M = glm::rotate(45.0f, vec3(1, 1, 1));
 	P = P * glm::lookAt(pos, pos + forward, up);
+
 	
 	// Cubes:
-	mat4 ***cubes = new mat4**[CUBE_SIZE];
-	for (int i = 0; i < CUBE_SIZE; i++)
+	cubes = new mat4**[MATRIX_SIZE];
+	rotatesX = new mat4**[MATRIX_SIZE];
+	rotatesY = new mat4**[MATRIX_SIZE];
+	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
-		cubes[i] = new mat4*[CUBE_SIZE];
-		for (int j = 0; j < CUBE_SIZE; j++)
+		cubes[i] = new mat4*[MATRIX_SIZE];
+		rotatesX[i] = new mat4*[MATRIX_SIZE];
+		rotatesY[i] = new mat4*[MATRIX_SIZE];
+		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
-			cubes[i][j] = new mat4[CUBE_SIZE];
+			cubes[i][j] = new mat4[MATRIX_SIZE];
+			rotatesX[i][j] = new mat4[MATRIX_SIZE];
+			rotatesY[i][j] = new mat4[MATRIX_SIZE];
+			for (int k = 0; k < MATRIX_SIZE; k++)
+			{
+				cubes[i][j][k] = mat4(1);
+				rotatesX[i][j][k] = mat4(1);
+				rotatesY[i][j][k] = mat4(1);
+			}
 		}
 	}
-	
 
+	/*cubes = new Cube***[MATRIX_SIZE];
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		cubes[i] = new Cube**[MATRIX_SIZE];
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			cubes[i][j] = new Cube*[MATRIX_SIZE];
+			for (int k = 0; k < MATRIX_SIZE; k++)
+			{
+				cubes[i][j][k] = new Cube(P, vec3(i, j, k));
+			}
+		}
+	}*/
+
+	
 	glfwSetKeyCallback(display.m_window, key_callback);
 
 	while (!glfwWindowShouldClose(display.m_window))
 	{
 		Sleep(3);
-		M = glm::rotate(M, 0.1f, up);
 		shader.Bind();
-
-		for (int i = 0; i < 3; i++)
+		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
+		for (int i = 0; i < MATRIX_SIZE; i++)
 		{
-			for (int j = 0; j < 3; j++)
+			for (int j = 0; j < MATRIX_SIZE; j++)
 			{
-				for (int k = 0; k < 3; k++)
+				for (int k = 0; k < MATRIX_SIZE; k++)
 				{
-					cubes[i][j][k] = P*M;
-					cubes[i][j][k] = glm::translate(cubes[i][j][k], vec3((float(i)) / 3.0, (float(i)) / 3.0, (float(i)) / 3.0));
-					cubes[i][j][k] = glm::scale(cubes[i][j][k], vec3(0.3, 0.3, 0.3));
-					display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
+					cubes[i][j][k] = P * rotatesX[i][k][k] * rotatesY[i][j][k];
+					cubes[i][j][k] = glm::translate(cubes[i][j][k],
+						(vec3(float(i), float(j), float(k)) - vec3(MATRIX_SIZE / 2)) * float(CUBE_SIZE) * DELTA);
 
-					shader.Update(cubes[i][j][k], M);
-					cube.Draw();
+					shader.Update(cubes[i][j][k], rotatesX[i][j][k] * rotatesY[i][j][k]);
+					cubeMesh.Draw();
 				}
 			}
 		}
-
-
-		/*mat4 MVP;
-		MVP = P*M;
-		MVP = glm::translate(MVP, vec3(0.0, 0.0, 0.0));
-		MVP = glm::scale(MVP, vec3(0.3, 0.3, 0.3));
-		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
-
-		mat4 MVP2;
-		MVP2 = P*M;
-		MVP2 = glm::translate(MVP2, vec3(1.0, 0.0, 0.0));
-		MVP2 = glm::scale(MVP2, vec3(0.3, 0.3, 0.3));
-		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
-
-		//shader.Bind();
-		shader.Update(MVP, M);
-		cube.Draw();
-
-		shader.Update(MVP2, M);
-		cube.Draw();*/
-
 
 		display.SwapBuffers();
 		glfwPollEvents();
@@ -143,7 +149,6 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
 
 
 
