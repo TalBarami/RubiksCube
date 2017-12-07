@@ -7,28 +7,58 @@ static const int MATRIX_SIZE = 3;
 static const int CUBE_SIZE = 2;
 static const float DELTA = 1.1;
 static const int CUBE_ROTATE_ANGLE = 45;
+int WALL_ROTATE_ANGLE = 90;
 
 glm::mat4 P;
 glm::mat4 ***cubes;
-glm::mat4 ***rotatesX;
-glm::mat4 ***rotatesY;
+glm::vec3 ***angles;
 //Cube ****cubes;
 
-int rotateWallAngle = 90;
 
 
-void rotateCube(glm::mat4 ***rotates, float angle,  glm::vec3 direction) {
+void rotateCube(int direction, int angle) {
 	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			for (int k = 0; k < MATRIX_SIZE; k++)
 			{
-				rotates[i][j][k] = glm::rotate(rotates[i][j][k], angle, direction);
+				angles[i][j][k][direction] = (int(angles[i][j][k][direction]) + angle) % 360;
 			}
 		}
 	}
 }
+
+void rotateWallX(int wallIndex, int direction, int angle) {
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			angles[wallIndex][i][j][direction] = (int(angles[wallIndex][i][j][direction]) + angle) % 360;
+		}
+	}
+}
+
+void rotateWallY(int wallIndex, int direction, int angle) {
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			angles[i][wallIndex][j][direction] = (int(angles[i][wallIndex][j][direction]) + angle) % 360;
+		}
+	}
+}
+
+void rotateWallZ(int wallIndex, int direction, int angle) {
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			angles[i][j][wallIndex][direction] = (int(angles[i][j][wallIndex][direction]) + angle) % 360;
+		}
+	}
+}
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -43,28 +73,34 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 	// Cube rotate:
 	case GLFW_KEY_UP:
-		rotateCube(rotatesX, CUBE_ROTATE_ANGLE, glm::vec3(1.0f, 0.0f, 0.0f));
+		rotateCube(0, CUBE_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_DOWN:
-		rotateCube(rotatesX, CUBE_ROTATE_ANGLE, glm::vec3(-1.0f, 0.0f, 0.0f));
+		rotateCube(0, -CUBE_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_RIGHT:
-		rotateCube(rotatesY, CUBE_ROTATE_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
+		rotateCube(1, CUBE_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_LEFT:
-		rotateCube(rotatesY, CUBE_ROTATE_ANGLE, glm::vec3(0.0f, -1.0f, 0.0f));
+		rotateCube(1, -CUBE_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_R:
+		rotateWallX(2, 0, WALL_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_L:
+		rotateWallX(0, 0, WALL_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_U:
+		rotateWallY(2, 1, WALL_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_D:
+		rotateWallY(0, 1, WALL_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_B:
+		rotateWallZ(2, 2, WALL_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_F:
+		rotateWallZ(0, 2, WALL_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_SPACE:
 		break;

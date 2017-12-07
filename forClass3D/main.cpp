@@ -84,23 +84,19 @@ int main(int argc, char** argv)
 	
 	// Cubes:
 	cubes = new mat4**[MATRIX_SIZE];
-	rotatesX = new mat4**[MATRIX_SIZE];
-	rotatesY = new mat4**[MATRIX_SIZE];
+	angles = new vec3**[MATRIX_SIZE];
 	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
 		cubes[i] = new mat4*[MATRIX_SIZE];
-		rotatesX[i] = new mat4*[MATRIX_SIZE];
-		rotatesY[i] = new mat4*[MATRIX_SIZE];
+		angles[i] = new vec3*[MATRIX_SIZE];
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			cubes[i][j] = new mat4[MATRIX_SIZE];
-			rotatesX[i][j] = new mat4[MATRIX_SIZE];
-			rotatesY[i][j] = new mat4[MATRIX_SIZE];
+			angles[i][j] = new vec3[MATRIX_SIZE];
 			for (int k = 0; k < MATRIX_SIZE; k++)
 			{
 				cubes[i][j][k] = mat4(1);
-				rotatesX[i][j][k] = mat4(1);
-				rotatesY[i][j][k] = mat4(1);
+				angles[i][j][k] = vec3(0);
 			}
 		}
 	}
@@ -119,7 +115,7 @@ int main(int argc, char** argv)
 		}
 	}*/
 
-	
+	glm::mat4 M;
 	glfwSetKeyCallback(display.m_window, key_callback);
 
 	while (!glfwWindowShouldClose(display.m_window))
@@ -133,11 +129,16 @@ int main(int argc, char** argv)
 			{
 				for (int k = 0; k < MATRIX_SIZE; k++)
 				{
-					cubes[i][j][k] = P * rotatesX[i][k][k] * rotatesY[i][j][k];
+					M = mat4(1);
+					M *= glm::rotate(mat4(1), angles[i][j][k].x, vec3(1, 0, 0));
+					M *= glm::rotate(mat4(1), angles[i][j][k].y, vec3(0, 1, 0));
+					M *= glm::rotate(mat4(1), angles[i][j][k].z, vec3(0, 0, 1));
+
+					cubes[i][j][k] = P * M;
 					cubes[i][j][k] = glm::translate(cubes[i][j][k],
 						(vec3(float(i), float(j), float(k)) - vec3(MATRIX_SIZE / 2)) * float(CUBE_SIZE) * DELTA);
 
-					shader.Update(cubes[i][j][k], rotatesX[i][j][k] * rotatesY[i][j][k]);
+					shader.Update(cubes[i][j][k], M);
 					cubeMesh.Draw();
 				}
 			}
