@@ -3,10 +3,14 @@
 c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(8): warning C4305: 'initializing': truncation from 'double' to 'float'
 c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(21): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(29): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(43): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(54): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(64): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(39): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(49): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(67): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(118): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(121): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
   Generating Code...
   Skipping... (no relevant changes detected)
   Cube.cpp
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+glew32sd.lib(glew.obj) : warning LNK4099: PDB 'vc110.pdb' was not found with 'glew32sd.lib(glew.obj)' or at 'C:\Users\Tal\Source\Repos\RubiksCube\Debug\vc110.pdb'; linking object as if no debug info
   forClass3D.vcxproj -> C:\Users\Tal\Source\Repos\RubiksCube\Debug\RubiksCube.exe

@@ -3,7 +3,7 @@
 #include <glm/gtx/transform.hpp>
 #include "Cube.h"
 
-static const int MATRIX_SIZE = 5;
+static const int MATRIX_SIZE = 3;
 static const int CUBE_SIZE = 2;
 static const float DELTA = 1.1;
 static const int CUBE_ROTATE_ANGLE = 45;
@@ -21,18 +21,42 @@ void rotateCube(int direction, int angle) {
 	cubeAngle[direction] = (int(cubeAngle[direction]) + angle) % 360;
 }
 
-void rotateWallX(int wallIndex, int direction, int angle) {
+void rotateWallX(int wallIndex) {
 	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
-			angles[wallIndex][i][j][direction] = (int(angles[wallIndex][i][j][direction]) + angle) % 360;
+			angles[wallIndex][i][j][0] = (int(angles[wallIndex][i][j][0]) + WALL_ROTATE_ANGLE) % 360;
 		}
 	}
 }
 
+void rotateWallY(int wallIndex) {
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			angles[i][wallIndex][j][1] = (int(angles[i][wallIndex][j][1]) + WALL_ROTATE_ANGLE) % 360;
+		}
+	}
+}
+
+void rotateWallZ(int wallIndex) {
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			angles[i][j][wallIndex][2] = (int(angles[i][j][wallIndex][2]) + WALL_ROTATE_ANGLE) % 360;
+		}
+	}
+}
+
+void handleIndicesRotationX(int wallIndex, int direction) {
+
+}
+
 void debug(int wallIndex, int direction, int angle) {
-	if(!DEBUG)
+	if (!DEBUG)
 	{
 		return;
 	}
@@ -45,27 +69,6 @@ void debug(int wallIndex, int direction, int angle) {
 		}
 	}
 }
-
-void rotateWallY(int wallIndex, int direction, int angle) {
-	for (int i = 0; i < MATRIX_SIZE; i++)
-	{
-		for (int j = 0; j < MATRIX_SIZE; j++)
-		{
-			angles[i][wallIndex][j][direction] = (int(angles[i][wallIndex][j][direction]) + angle) % 360;
-		}
-	}
-}
-
-void rotateWallZ(int wallIndex, int direction, int angle) {
-	for (int i = 0; i < MATRIX_SIZE; i++)
-	{
-		for (int j = 0; j < MATRIX_SIZE; j++)
-		{
-			angles[i][j][wallIndex][direction] = (int(angles[i][j][wallIndex][direction]) + angle) % 360;
-		}
-	}
-}
-
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -91,28 +94,31 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		rotateCube(1, -CUBE_ROTATE_ANGLE);
 		break;
 	case GLFW_KEY_R:
-		rotateWallX(2, 0, WALL_ROTATE_ANGLE);
+		rotateWallX(2);
 		break;
 	case GLFW_KEY_L:
-		rotateWallX(0, 0, WALL_ROTATE_ANGLE);
+		rotateWallX(0);
 		break;
 	case GLFW_KEY_U:
-		rotateWallY(2, 1, WALL_ROTATE_ANGLE);
+		rotateWallY(2);
 		break;
 	case GLFW_KEY_D:
-		rotateWallY(0, 1, WALL_ROTATE_ANGLE);
+		rotateWallY(0);
 		break;
 	case GLFW_KEY_B:
-		rotateWallZ(2, 2, WALL_ROTATE_ANGLE);
+		rotateWallZ(2);
 		break;
 	case GLFW_KEY_F:
-		rotateWallZ(0, 2, WALL_ROTATE_ANGLE);
+		rotateWallZ(0);
 		break;
 	case GLFW_KEY_SPACE:
 		break;
 	case GLFW_KEY_Z:
+		//WALL_ROTATE_ANGLE = min(1, WALL_ROTATE_ANGLE / 2);
+		WALL_ROTATE_ANGLE = std::fmax(1, WALL_ROTATE_ANGLE / 2);
 		break;
 	case GLFW_KEY_A:
+		WALL_ROTATE_ANGLE = std::fmin(180, WALL_ROTATE_ANGLE * 2);
 		break;
 	case GLFW_KEY_ESCAPE:
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
