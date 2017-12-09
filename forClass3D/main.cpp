@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 		Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(1, 0, 0),glm::vec3(0.5, 0.5, 0.5))
 	};
 
-	unsigned int indices[] = {0, 1, 2,
+	unsigned int vIndices[] = {0, 1, 2,
 							  0, 2, 3,
 
 							  6, 5, 4,
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 	                          };
 
 
-    Mesh cubeMesh(vertices, sizeof(vertices)/sizeof(vertices[0]), indices, sizeof(indices)/sizeof(indices[0]));
+    Mesh cubeMesh(vertices, sizeof(vertices)/sizeof(vertices[0]), vIndices, sizeof(vIndices)/sizeof(vIndices[0]));
 	//Mesh cube("./res/meshes/testBoxNoUV.obj");
 	Shader shader("./res/shaders/basicShader");
 	
@@ -78,46 +78,35 @@ int main(int argc, char** argv)
 	vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
 	vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 	P = glm::perspective(60.0f, float(DISPLAY_WIDTH) / float(DISPLAY_HEIGHT), 0.1f, 100.0f);
-	//M = glm::rotate(45.0f, vec3(1, 1, 1));
 	P = P * glm::lookAt(pos, pos + forward, up);
 
-	
 	// Cubes:
 	cubes = new mat4**[MATRIX_SIZE];
+	indices = new vec3**[MATRIX_SIZE];
 	angles = new vec3**[MATRIX_SIZE];
+
 	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
 		cubes[i] = new mat4*[MATRIX_SIZE];
 		angles[i] = new vec3*[MATRIX_SIZE];
+		indices[i] = new vec3*[MATRIX_SIZE];
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			cubes[i][j] = new mat4[MATRIX_SIZE];
 			angles[i][j] = new vec3[MATRIX_SIZE];
+			indices[i][j] = new vec3[MATRIX_SIZE];
 			for (int k = 0; k < MATRIX_SIZE; k++)
 			{
 				cubes[i][j][k] = mat4(1);
 				angles[i][j][k] = vec3(0);
+				indices[i][j][k] = vec3(i, j, k);
 			}
 		}
 	}
 
-	/*cubes = new Cube***[MATRIX_SIZE];
-	for (int i = 0; i < MATRIX_SIZE; i++)
-	{
-		cubes[i] = new Cube**[MATRIX_SIZE];
-		for (int j = 0; j < MATRIX_SIZE; j++)
-		{
-			cubes[i][j] = new Cube*[MATRIX_SIZE];
-			for (int k = 0; k < MATRIX_SIZE; k++)
-			{
-				cubes[i][j][k] = new Cube(P, vec3(i, j, k));
-			}
-		}
-	}*/
-
 	glm::mat4 rotates, translates;
 	glfwSetKeyCallback(display.m_window, key_callback);
-
+	int x, y, z;
 	while (!glfwWindowShouldClose(display.m_window))
 	{
 		Sleep(3);
@@ -129,23 +118,29 @@ int main(int argc, char** argv)
 			{
 				for (int k = 0; k < MATRIX_SIZE; k++)
 				{
+					x = indices[i][j][k].x, y = indices[i][j][k].y, z = indices[i][j][k].z;
+					// Translations
 					translates = mat4(1);
 					translates = glm::translate(translates,
-						(vec3(float(i), float(j), float(k)) - vec3(MATRIX_SIZE / 2)) * float(CUBE_SIZE) * DELTA);
+						(vec3(float(x), float(y), float(z)) - vec3(MATRIX_SIZE / 2)) * float(CUBE_SIZE) * DELTA);
+					if (asd & x == toMove.x && y == toMove.y && z == toMove.z) {
+						translates = glm::translate(translates, vec3(5, 5, 5));
+					}
 
+					// Rotations
 					rotates = mat4(1);
 					rotates = glm::rotate(rotates, cubeAngle.x, vec3(1, 0, 0));
 					rotates = glm::rotate(rotates, cubeAngle.y, vec3(0, 1, 0));
 					rotates = glm::rotate(rotates, cubeAngle.z, vec3(0, 0, 1));
-					rotates = glm::rotate(rotates, angles[i][j][k].x, vec3(1, 0, 0));
-					rotates = glm::rotate(rotates, angles[i][j][k].y, vec3(0, 1, 0));
-					rotates = glm::rotate(rotates, angles[i][j][k].z, vec3(0, 0, 1));
+					rotates = glm::rotate(rotates, angles[x][y][z].x, vec3(1, 0, 0));
+					rotates = glm::rotate(rotates, angles[x][y][z].y, vec3(0, 1, 0));
+					rotates = glm::rotate(rotates, angles[x][y][z].z, vec3(0, 0, 1));
 
-					cubes[i][j][k] = P * rotates;
-					cubes[i][j][k] = glm::translate(cubes[i][j][k],
-						(vec3(float(i), float(j), float(k)) - vec3(MATRIX_SIZE / 2)) * float(CUBE_SIZE) * DELTA);
 
-					shader.Update(cubes[i][j][k], rotates);
+
+					cubes[x][y][z] = P * (rotates * translates);
+
+					shader.Update(cubes[x][y][z], rotates * translates);
 					cubeMesh.Draw();
 				}
 			}
