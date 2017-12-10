@@ -1,15 +1,14 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (forClass3D.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   main.cpp
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(8): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(30): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(111): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(122): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(133): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(147): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(241): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(244): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(121): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(126): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(11): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(35): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(163): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(175): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(187): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(132): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(133): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(134): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(136): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
   Generating Code...
   Skipping... (no relevant changes detected)
   Cube.cpp
