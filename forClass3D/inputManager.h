@@ -20,8 +20,10 @@ vec3 cubeAngle;
 mat4 ***cubes;
 mat4 ***translates;
 mat4 ***rotates;
-
+mat4 ***rotates_anim;
 vec3 ***indices;
+
+vec3 ***angles;
 
 
 vec3 toMove = vec3(0);
@@ -162,6 +164,7 @@ void rotateWallX(int wallIndex) {
 		{
 			int x = indices[wallIndex][i][j].x, y = indices[wallIndex][i][j].y, z = indices[wallIndex][i][j].z;
 			rotates[x][y][z] = glm::rotate(rotates[x][y][z], float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(1.0f, 0.0f, 0.0f));
+			angles[x][y][z] += vec3(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), 0.0, 0.0);
 		}
 	}
 	ROTATION_DIRECTION == 1 ? handleIndicesX_CW(wallIndex) : handleIndicesX_CCW(wallIndex);
@@ -174,6 +177,7 @@ void rotateWallY(int wallIndex) {
 		{
 			int x = indices[i][wallIndex][j].x, y = indices[i][wallIndex][j].y, z = indices[i][wallIndex][j].z;
 			rotates[x][y][z] = glm::rotate(rotates[x][y][z], float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 1.0f, 0.0f));
+			angles[x][y][z] += vec3(0.0, float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), 0.0);
 		}
 	}
 	ROTATION_DIRECTION == 1 ? handleIndicesY_CW(wallIndex) : handleIndicesY_CCW(wallIndex);
@@ -185,8 +189,8 @@ void rotateWallZ(int wallIndex) {
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			int x = indices[i][j][wallIndex].x, y = indices[i][j][wallIndex].y, z = indices[i][j][wallIndex].z;
-			//angles[x][y][wallIndex][2] = (int(angles[x][y][wallIndex][2]) + (ROTATION_DIRECTION * WALL_ROTATE_ANGLE)) % 360;
 			rotates[x][y][z] = glm::rotate(rotates[x][y][z], float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 0.0f, 1.0f));
+			angles[x][y][z] += vec3(0.0, 0.0, float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE));
 		}
 	}
 	ROTATION_DIRECTION == 1 ? handleIndicesZ_CW(wallIndex) : handleIndicesZ_CCW(wallIndex);
