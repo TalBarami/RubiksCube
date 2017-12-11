@@ -68,15 +68,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Cube.h" />
     <ClInclude Include="debugTimer.h" />
     <ClInclude Include="display.h" />
     <ClInclude Include="inputManager.h" />
+    <ClInclude Include="Scene.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="display.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\engine\engine.vcxproj">

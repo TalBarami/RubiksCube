@@ -7,7 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
-#include "Cube.h"
 
 using namespace glm;
 
@@ -75,50 +74,43 @@ int main(int argc, char** argv)
 	//Mesh cube("./res/meshes/testBoxNoUV.obj");
 	Shader shader("./res/shaders/basicShader");
 	
-	vec3 pos = -vec3(0, 0, 3 * MATRIX_SIZE * CUBE_SIZE);
-	vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
-	vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+	auto pos = -vec3(0, 0, 3 * MATRIX_SIZE * CUBE_SIZE);
+	auto forward = glm::vec3(0.0f, 0.0f, 1.0f);
+	auto up = glm::vec3(0.0f, 1.0f, 0.0f);
 	P = glm::perspective(60.0f, float(DISPLAY_WIDTH) / float(DISPLAY_HEIGHT), 0.1f, 100.0f);
 	P = P * glm::lookAt(pos, pos + forward, up);
 
-	// Cubes:
-	cubes = new mat4**[MATRIX_SIZE];
+	scene = Scene();
 	translates = new mat4**[MATRIX_SIZE];
 	rotates = new mat4**[MATRIX_SIZE];
 	rotates_anim = new mat4**[MATRIX_SIZE];
 	indices = new vec3**[MATRIX_SIZE];
 	interpolations = new float**[MATRIX_SIZE];
-
-	angles = new vec3**[MATRIX_SIZE];
-	for (int i = 0; i < MATRIX_SIZE; i++)
+	
+	for (auto i = 0; i < MATRIX_SIZE; i++)
 	{
-		cubes[i] = new mat4*[MATRIX_SIZE];
 		translates[i] = new mat4*[MATRIX_SIZE];
 		rotates[i] = new mat4*[MATRIX_SIZE];
 		rotates_anim[i] = new mat4*[MATRIX_SIZE];
 		indices[i] = new vec3*[MATRIX_SIZE];
 		interpolations[i] = new float*[MATRIX_SIZE];
 
-		angles[i] = new vec3*[MATRIX_SIZE];
-		for (int j = 0; j < MATRIX_SIZE; j++)
+		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			cubes[i][j] = new mat4[MATRIX_SIZE];
 			translates[i][j] = new mat4[MATRIX_SIZE];
 			rotates[i][j] = new mat4[MATRIX_SIZE];
 			rotates_anim[i][j] = new mat4[MATRIX_SIZE];
 			indices[i][j] = new vec3[MATRIX_SIZE];
 			interpolations[i][j] = new float[MATRIX_SIZE];
 
-			angles[i][j] = new vec3[MATRIX_SIZE];
-			for (int k = 0; k < MATRIX_SIZE; k++)
+			for (auto k = 0; k < MATRIX_SIZE; k++)
 			{
-				cubes[i][j][k] = mat4(1);
-				int relative;
+				float relative;
 				if (MATRIX_SIZE % 2 == 0) {
-					relative = MATRIX_SIZE / 2 + 0.5;
+					relative = (MATRIX_SIZE - 1.0f) / 2.0f;
 				}
 				else {
-					relative = MATRIX_SIZE / 2;
+					relative = int(MATRIX_SIZE / 2);
 				}
 				translates[i][j][k] = glm::translate(mat4(1),
 					(vec3(float(i), float(j), float(k)) - vec3(relative)) * float(CUBE_SIZE) * DELTA);
@@ -126,48 +118,42 @@ int main(int argc, char** argv)
 				rotates_anim[i][j][k] = mat4(1);
 				interpolations[i][j][k] = 1;
 				indices[i][j][k] = vec3(i, j, k);
-				angles[i][j][k] = vec3(0);
 			}
+		}
+	}
+
+	angles = new vec3*[3];
+	for (int i = 0; i < 3; i++) {
+		angles[i] = new vec3[MATRIX_SIZE];
+		for (int j = 0; j < MATRIX_SIZE; j++) {
+			angles[i][j] = vec3(0);
 		}
 	}
 
 	glm::mat4 M, MVP;
 	glfwSetKeyCallback(display.m_window, key_callback);
 	int x, y, z;
-	cubeRotateInterpolationX = 1; cubeRotateInterpolationY = 1;
 	while (!glfwWindowShouldClose(display.m_window))
 	{
 		Sleep(3);
 		shader.Bind();
 		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
-		glm::mat4 localRotateX = glm::interpolate(cubeRotateX_anim, cubeRotateX, cubeRotateInterpolationX);
-		if (cubeRotateInterpolationX < 1) {
-			cubeRotateInterpolationX += 0.01;
-		}
-		else {
-			cubeRotateInterpolationX = 1;
-		}
-		glm::mat4 localRotateY = glm::interpolate(cubeRotateY_anim, cubeRotateY, cubeRotateInterpolationY);
-		if (cubeRotateInterpolationY < 1) {
-			cubeRotateInterpolationY += 0.01;
-		}
-		else {
-			cubeRotateInterpolationY = 1;
-		}
+		auto localRotateX = scene.animateX();
+		auto localRotateY = scene.animateY();
 
-		for (int i = 0; i < MATRIX_SIZE; i++)
+		for (auto i = 0; i < MATRIX_SIZE; i++)
 		{
-			for (int j = 0; j < MATRIX_SIZE; j++)
+			for (auto j = 0; j < MATRIX_SIZE; j++)
 			{
-				for (int k = 0; k < MATRIX_SIZE; k++)
+				for (auto k = 0; k < MATRIX_SIZE; k++)
 				{
 					x = indices[i][j][k].x;
 					y = indices[i][j][k].y;
 					z = indices[i][j][k].z;
 					
-					glm::mat4 translate = translates[x][y][z];
-					glm::mat4 rotate = glm::interpolate(rotates_anim[x][y][z], rotates[x][y][z], interpolations[x][y][z]);
+					auto translate = translates[x][y][z];
+					auto rotate = glm::interpolate(rotates_anim[x][y][z], rotates[x][y][z], interpolations[x][y][z]);
 					if (interpolations[x][y][z] < 1) {
 						interpolations[x][y][z] += 0.01;
 					}
