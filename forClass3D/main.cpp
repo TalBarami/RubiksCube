@@ -88,6 +88,7 @@ int main(int argc, char** argv)
 	rotates_anim = new mat4**[MATRIX_SIZE];
 	indices = new vec3**[MATRIX_SIZE];
 	angles = new vec3**[MATRIX_SIZE];
+	angles_anim = new vec3**[MATRIX_SIZE];
 	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
 		cubes[i] = new mat4*[MATRIX_SIZE];
@@ -96,6 +97,7 @@ int main(int argc, char** argv)
 		rotates_anim[i] = new mat4*[MATRIX_SIZE];
 		indices[i] = new vec3*[MATRIX_SIZE];
 		angles[i] = new vec3*[MATRIX_SIZE];
+		angles_anim[i] = new vec3*[MATRIX_SIZE];
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			cubes[i][j] = new mat4[MATRIX_SIZE];
@@ -104,6 +106,7 @@ int main(int argc, char** argv)
 			rotates_anim[i][j] = new mat4[MATRIX_SIZE];
 			indices[i][j] = new vec3[MATRIX_SIZE];
 			angles[i][j] = new vec3[MATRIX_SIZE];
+			angles_anim[i][j] = new vec3[MATRIX_SIZE];
 			for (int k = 0; k < MATRIX_SIZE; k++)
 			{
 				cubes[i][j][k] = mat4(1);
@@ -120,6 +123,7 @@ int main(int argc, char** argv)
 				rotates_anim[i][j][k] = mat4(1);
 				indices[i][j][k] = vec3(i, j, k);
 				angles[i][j][k] = vec3(0);
+				angles_anim[i][j][k] = vec3(0);
 			}
 		}
 	}
@@ -153,23 +157,19 @@ int main(int argc, char** argv)
 						translate = glm::translate(mat4(1), vec3(0, 0, 0));
 					}
 					else {
-						translate = glm::translate(mat4(1),
-							(vec3(float(i), float(j), float(k)) - vec3(MATRIX_SIZE / 2)) * float(CUBE_SIZE) * DELTA);
-						//translate = translates[x][y][z];
+						translate = translates[x][y][z];
+						//translate = translates[i][j][k];
 					}
 
 					/*rotate = mat4(1);
 					rotate = glm::rotate(rotate, angles[x][y][z].x, vec3(1, 0, 0));
 					rotate = glm::rotate(rotate, angles[x][y][z].y, vec3(0, 1, 0));
 					rotate = glm::rotate(rotate, angles[x][y][z].z, vec3(0, 0, 1));*/
-					//rotate = rotates[x][y][z];
+					rotate = rotates[x][y][z];
+					//rotate = rotates[i][j][k];
 					
-					//rotate_anim = rotates_anim[x][y][z];
-					//rotate = glm::interpolate(rotate, rotate_anim, 90.0f);
-					
-					M = cubeRotate * translate * rotate;
+					M = cubeRotate * rotate * translate;
 					MVP = P * M;
-					
 					shader.Update(MVP, M);
 					cubeMesh.Draw();
 				}
