@@ -87,8 +87,9 @@ int main(int argc, char** argv)
 	rotates = new mat4**[MATRIX_SIZE];
 	rotates_anim = new mat4**[MATRIX_SIZE];
 	indices = new vec3**[MATRIX_SIZE];
+	interpolations = new float**[MATRIX_SIZE];
+
 	angles = new vec3**[MATRIX_SIZE];
-	angles_anim = new vec3**[MATRIX_SIZE];
 	for (int i = 0; i < MATRIX_SIZE; i++)
 	{
 		cubes[i] = new mat4*[MATRIX_SIZE];
@@ -96,8 +97,9 @@ int main(int argc, char** argv)
 		rotates[i] = new mat4*[MATRIX_SIZE];
 		rotates_anim[i] = new mat4*[MATRIX_SIZE];
 		indices[i] = new vec3*[MATRIX_SIZE];
+		interpolations[i] = new float*[MATRIX_SIZE];
+
 		angles[i] = new vec3*[MATRIX_SIZE];
-		angles_anim[i] = new vec3*[MATRIX_SIZE];
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			cubes[i][j] = new mat4[MATRIX_SIZE];
@@ -105,8 +107,9 @@ int main(int argc, char** argv)
 			rotates[i][j] = new mat4[MATRIX_SIZE];
 			rotates_anim[i][j] = new mat4[MATRIX_SIZE];
 			indices[i][j] = new vec3[MATRIX_SIZE];
+			interpolations[i][j] = new float[MATRIX_SIZE];
+
 			angles[i][j] = new vec3[MATRIX_SIZE];
-			angles_anim[i][j] = new vec3[MATRIX_SIZE];
 			for (int k = 0; k < MATRIX_SIZE; k++)
 			{
 				cubes[i][j][k] = mat4(1);
@@ -121,26 +124,37 @@ int main(int argc, char** argv)
 					(vec3(float(i), float(j), float(k)) - vec3(relative)) * float(CUBE_SIZE) * DELTA);
 				rotates[i][j][k] = mat4(1);
 				rotates_anim[i][j][k] = mat4(1);
+				interpolations[i][j][k] = 1;
 				indices[i][j][k] = vec3(i, j, k);
 				angles[i][j][k] = vec3(0);
-				angles_anim[i][j][k] = vec3(0);
 			}
 		}
 	}
 
-	glm::mat4 cubeRotate, rotate, rotate_anim, translate, M, MVP;
+	glm::mat4 M, MVP;
 	glfwSetKeyCallback(display.m_window, key_callback);
 	int x, y, z;
+	cubeRotateInterpolationX = 1; cubeRotateInterpolationY = 1;
 	while (!glfwWindowShouldClose(display.m_window))
 	{
 		Sleep(3);
 		shader.Bind();
 		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
-		
-		cubeRotate = mat4(1);
-		cubeRotate = glm::rotate(cubeRotate, cubeAngle.x, vec3(1, 0, 0));
-		cubeRotate = glm::rotate(cubeRotate, cubeAngle.y, vec3(0, 1, 0));
-		cubeRotate = glm::rotate(cubeRotate, cubeAngle.z, vec3(0, 0, 1));
+
+		glm::mat4 localRotateX = glm::interpolate(cubeRotateX_anim, cubeRotateX, cubeRotateInterpolationX);
+		if (cubeRotateInterpolationX < 1) {
+			cubeRotateInterpolationX += 0.01;
+		}
+		else {
+			cubeRotateInterpolationX = 1;
+		}
+		glm::mat4 localRotateY = glm::interpolate(cubeRotateY_anim, cubeRotateY, cubeRotateInterpolationY);
+		if (cubeRotateInterpolationY < 1) {
+			cubeRotateInterpolationY += 0.01;
+		}
+		else {
+			cubeRotateInterpolationY = 1;
+		}
 
 		for (int i = 0; i < MATRIX_SIZE; i++)
 		{
@@ -152,23 +166,16 @@ int main(int argc, char** argv)
 					y = indices[i][j][k].y;
 					z = indices[i][j][k].z;
 					
-
-					if (asd & x == toMove.x && y == toMove.y && z == toMove.z) {
-						translate = glm::translate(mat4(1), vec3(0, 0, 0));
+					glm::mat4 translate = translates[x][y][z];
+					glm::mat4 rotate = glm::interpolate(rotates_anim[x][y][z], rotates[x][y][z], interpolations[x][y][z]);
+					if (interpolations[x][y][z] < 1) {
+						interpolations[x][y][z] += 0.01;
 					}
 					else {
-						translate = translates[x][y][z];
-						//translate = translates[i][j][k];
+						interpolations[x][y][z] = 1;
 					}
 
-					/*rotate = mat4(1);
-					rotate = glm::rotate(rotate, angles[x][y][z].x, vec3(1, 0, 0));
-					rotate = glm::rotate(rotate, angles[x][y][z].y, vec3(0, 1, 0));
-					rotate = glm::rotate(rotate, angles[x][y][z].z, vec3(0, 0, 1));*/
-					rotate = rotates[x][y][z];
-					//rotate = rotates[i][j][k];
-					
-					M = cubeRotate * rotate * translate;
+					M = localRotateX * localRotateY * rotate * translate;
 					MVP = P * M;
 					shader.Update(MVP, M);
 					cubeMesh.Draw();

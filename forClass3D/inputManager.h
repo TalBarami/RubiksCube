@@ -15,27 +15,42 @@ int ROTATION_DIRECTION = 1;
 boolean DEBUG = false;
 
 mat4 P;
-vec3 cubeAngle;
+mat4 cubeRotateX;
+mat4 cubeRotateX_anim;
+float cubeRotateInterpolationX;
+mat4 cubeRotateY;
+mat4 cubeRotateY_anim;
+float cubeRotateInterpolationY;
 
 mat4 ***cubes;
 mat4 ***translates;
 mat4 ***rotates;
 mat4 ***rotates_anim;
+float ***interpolations;
 vec3 ***indices;
 
 vec3 ***angles;
-vec3 ***angles_anim;
 
+void rotateCubeX(int direction) {
+	if (cubeRotateInterpolationX < 1) {
+		return;
+	}
 
-vec3 toMove = vec3(0);
-bool asd = false;
-
-void printPoint(vec3 p) {
-	std::cout << "(" << p.x << "," << p.y << "," << p.z << ")    ";
+	mat4 temp = glm::rotate(float(direction * CUBE_ROTATE_ANGLE), vec3(1.0f, 0.0f, 0.0f));
+	cubeRotateX_anim = cubeRotateX;
+	cubeRotateX = temp * cubeRotateX;
+	cubeRotateInterpolationX = 0;
 }
 
-void rotateCube(int direction, int angle) {
-	cubeAngle[direction] = (int(cubeAngle[direction]) + angle) % 360;
+void rotateCubeY(int direction) {
+	if (cubeRotateInterpolationY < 1) {
+		return;
+	}
+
+	mat4 temp = glm::rotate(float(direction * CUBE_ROTATE_ANGLE), vec3(0.0f, 1.0f, 0.0f));
+	cubeRotateY_anim = cubeRotateY;
+	cubeRotateY = temp * cubeRotateY;
+	cubeRotateInterpolationY = 0;
 }
 
 void handleIndicesX_CW(int wallIndex) {
@@ -164,12 +179,30 @@ void rotateWallX(int wallIndex) {
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			int x = indices[wallIndex][i][j].x, y = indices[wallIndex][i][j].y, z = indices[wallIndex][i][j].z;
+			if (interpolations[x][y][z] < 1 || int(angles[x][y][z].y) % 90 != 0 || int(angles[x][y][z].z) % 90 != 0) {
+				return;
+			}
+		}
+	}
+
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			int x = indices[wallIndex][i][j].x, y = indices[wallIndex][i][j].y, z = indices[wallIndex][i][j].z;
 			mat4 temp = glm::rotate(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(1.0f, 0.0f, 0.0f));
+			rotates_anim[x][y][z] = rotates[x][y][z];
 			rotates[x][y][z] = temp * rotates[x][y][z];
+			interpolations[x][y][z] = 0;
+			
 			angles[x][y][z] += vec3(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), 0.0, 0.0);
 		}
 	}
-	ROTATION_DIRECTION == 1 ? handleIndicesX_CW(wallIndex) : handleIndicesX_CCW(wallIndex);
+	int x = indices[wallIndex][0][0].x, y = indices[wallIndex][0][0].y, z = indices[wallIndex][0][0].z;
+	int handleTimes = angles[x][y][z].x / 90;
+	for (int i = 0; i < handleTimes; i++) {
+		ROTATION_DIRECTION == 1 ? handleIndicesX_CW(wallIndex) : handleIndicesX_CCW(wallIndex);
+	}
 }
 
 void rotateWallY(int wallIndex) {
@@ -178,12 +211,28 @@ void rotateWallY(int wallIndex) {
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			int x = indices[i][wallIndex][j].x, y = indices[i][wallIndex][j].y, z = indices[i][wallIndex][j].z;
+			if (interpolations[x][y][z] < 1 || int(angles[x][y][z].x) % 90 != 0 || int(angles[x][y][z].z) % 90 != 0) {
+				return;
+			}
+		}
+	}
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			int x = indices[i][wallIndex][j].x, y = indices[i][wallIndex][j].y, z = indices[i][wallIndex][j].z;
 			mat4 temp = glm::rotate(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 1.0f, 0.0f));
+			rotates_anim[x][y][z] = rotates[x][y][z];
 			rotates[x][y][z] = temp * rotates[x][y][z];
+			interpolations[x][y][z] = 0;
 			angles[x][y][z] += vec3(0.0, float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), 0.0);
 		}
 	}
-	ROTATION_DIRECTION == 1 ? handleIndicesY_CW(wallIndex) : handleIndicesY_CCW(wallIndex);
+	int x = indices[0][wallIndex][0].x, y = indices[0][wallIndex][0].y, z = indices[0][wallIndex][0].z;
+	int handleTimes = angles[x][y][z].y / 90;
+	for (int i = 0; i < handleTimes; i++) {
+		ROTATION_DIRECTION == 1 ? handleIndicesY_CW(wallIndex) : handleIndicesY_CCW(wallIndex);
+	}
 }
 
 void rotateWallZ(int wallIndex) {
@@ -192,12 +241,29 @@ void rotateWallZ(int wallIndex) {
 		for (int j = 0; j < MATRIX_SIZE; j++)
 		{
 			int x = indices[i][j][wallIndex].x, y = indices[i][j][wallIndex].y, z = indices[i][j][wallIndex].z;
+			if (interpolations[x][y][z] < 1 || int(angles[x][y][z].x) % 90 != 0 || int(angles[x][y][z].y) % 90 != 0) {
+				return;
+			}
+		}
+	}
+	for (int i = 0; i < MATRIX_SIZE; i++)
+	{
+		for (int j = 0; j < MATRIX_SIZE; j++)
+		{
+			int x = indices[i][j][wallIndex].x, y = indices[i][j][wallIndex].y, z = indices[i][j][wallIndex].z;
 			mat4 temp = glm::rotate(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 0.0f, 1.0f));
+			rotates_anim[x][y][z] = rotates[x][y][z];
 			rotates[x][y][z] = temp * rotates[x][y][z];
+			interpolations[x][y][z] = 0;
 			angles[x][y][z] += vec3(0.0, 0.0, float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE));
 		}
 	}
-	ROTATION_DIRECTION == 1 ? handleIndicesZ_CW(wallIndex) : handleIndicesZ_CCW(wallIndex);
+
+	int x = indices[0][0][wallIndex].x, y = indices[0][0][wallIndex].y, z = indices[0][0][wallIndex].z;
+	int handleTimes = angles[x][y][z].z / 90;
+	for (int i = 0; i < handleTimes; i++) {
+		ROTATION_DIRECTION == 1 ? handleIndicesZ_CW(wallIndex) : handleIndicesZ_CCW(wallIndex);
+	}
 }
 
 void mixCube() {
@@ -213,75 +279,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	std::cout << "key_callback with: key=" << key << " scancode=" << scancode << " action=" << action << " mods=" << mods << std::endl;
 	switch (key)
 	{
-	// Cube rotate:
-	/*case GLFW_KEY_BACKSPACE:
-		asd = false;
-		break;
-	case GLFW_KEY_Q:
-		toMove = indices[0][0][0];
-		printPoint(indices[0][0][0]);
-		asd = !asd;
-		break;
-	case GLFW_KEY_W:
-		toMove = indices[0][2][0];
-		printPoint(indices[0][2][0]);
-		asd = true;
-		break;
-	case GLFW_KEY_E:
-		toMove = indices[2][0][0];
-		printPoint(indices[2][0][0]);
-		asd = true;
-		break;
-	case GLFW_KEY_R:
-		toMove = indices[2][2][0];
-		printPoint(indices[2][2][0]);
-		asd = true;
-		break;
-	case GLFW_KEY_A:
-		toMove = indices[0][0][2];
-		printPoint(indices[0][0][2]);
-		asd = true;
-		break;
-	case GLFW_KEY_S:
-		toMove = indices[0][2][2];
-		printPoint(indices[0][2][2]);
-		asd = true;
-		break;
-	case GLFW_KEY_1:
-		for (int i = MATRIX_SIZE - 1; i >= 0; i--) {
-			for (int j = MATRIX_SIZE - 1; j >= 0; j--) {
-				printPoint(indices[j][i][0]);
-			}
-			std::cout << std::endl;
-		}
-		break;
-	case GLFW_KEY_2:
-		for (int i = MATRIX_SIZE - 1; i >= 0; i--) {
-			for (int j = MATRIX_SIZE - 1; j >= 0; j--) {
-				printPoint(indices[j][i][1]);
-			}
-			std::cout << std::endl;
-		}
-		break;
-	case GLFW_KEY_3:
-		for (int i = MATRIX_SIZE - 1; i >= 0; i--) {
-			for (int j = MATRIX_SIZE - 1; j >= 0; j--) {
-				printPoint(indices[j][i][2]);
-			}
-			std::cout << std::endl;
-		}
-		break;*/
 	case GLFW_KEY_UP:
-		rotateCube(0, CUBE_ROTATE_ANGLE);
+		rotateCubeX(1);
 		break;
 	case GLFW_KEY_DOWN:
-		rotateCube(0, -CUBE_ROTATE_ANGLE);
+		rotateCubeX(-1);
 		break;
 	case GLFW_KEY_RIGHT:
-		rotateCube(1, CUBE_ROTATE_ANGLE);
+		rotateCubeY(1);
 		break;
 	case GLFW_KEY_LEFT:
-		rotateCube(1, -CUBE_ROTATE_ANGLE);
+		rotateCubeY(-1);
 		break;
 	case GLFW_KEY_R:
 		rotateWallX(2);
@@ -319,27 +327,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	default:
 		break;
 	}
-	/*case GLFW_KEY_A:
-	debug(0, 0, 5);
-	break;
-	case GLFW_KEY_S:
-	debug(0, 1, 5);
-	break;
-	case GLFW_KEY_D:
-	debug(0, 2, 5);
-	break;
-	case GLFW_KEY_Z:
-	debug(0, 0, -5);
-	break;
-	case GLFW_KEY_X:
-	debug(0, 1, -5);
-	break;
-	case GLFW_KEY_C:
-	debug(0, 2, -5);
-	break;
-	case GLFW_KEY_1:
-	DEBUG = true;
-	break;*/
 }
 
 
