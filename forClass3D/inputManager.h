@@ -15,14 +15,13 @@ float WALL_ROTATE_ANGLE = 90;
 int ROTATION_DIRECTION = 1;
 int WALL_ROTATE_INDEX = 0;
 
-bool startShuffle = false;
 bool KEYBOARD_ACTIVE = true;
 
 Scene scene;
 mat4 P;
-std::thread runner;
-std::thread mixer;
-std::thread solver;
+
+bool isMixerReady;
+std::thread mixerThread;
 
 vec3 ***indices;
 mat4 ***translates;
@@ -72,7 +71,7 @@ inline void handleIndicesX_CCW(int wallIndex) {
 }
 
 inline void handleIndicesY_CW(int wallIndex) {
-	vec3 **tmp = new vec3*[MATRIX_SIZE];
+	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
@@ -318,20 +317,26 @@ inline void onAngleMultiplyClick()
 	std::cout << "New rotation angle: " << WALL_ROTATE_ANGLE << std::endl;
 }
 
-inline void shuffleCube() {
+inline void solveCube() {
+	std::cout << "Solve cube." << std::endl;
+
+}
+
+inline void shuffleCube()
+{
 	std::cout << "Shuffle." << std::endl;
-	auto totalSteps = rand() % 41 + 10; // 10 - 50 random moves;
-	int direction, wallIndex, action;
 	std::srand(time(nullptr));
+	int direction, wallIndex, action;
+	auto totalSteps = rand() % (10 * MATRIX_SIZE) + 20;
 	auto restBetweenSteps = 500;
-	std::string record = "TOTAL_STEPS=" + std::to_string(totalSteps) + "\n";
+	auto record = "TOTAL_STEPS=" + std::to_string(totalSteps) + "\n";
 	for (auto i = 0; i < totalSteps; i++)
 	{
 		direction = std::rand() % 2;
 		wallIndex = std::rand() % MATRIX_SIZE;
 		action = std::rand() % 3;
 		std::cout << "Rotate wall [" << action << "][" << wallIndex << "] dir=" << direction << std::endl;
-		if(direction == 1)
+		if (direction == 1)
 		{
 			record += "FLIP\n";
 			onFlipRotateDirectionClick();
@@ -340,24 +345,24 @@ inline void shuffleCube() {
 		onRotateIndexClick(wallIndex);
 		record += "WIND" + std::to_string(wallIndex) + "\n";
 
-		switch(action)
+		switch (action)
 		{
 		case 0:
-			while(!onRotateWallX(wallIndex))
+			while (!onRotateWallX(wallIndex))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
 			}
 			record += "RX\n";
 			break;
 		case 1:
-			while(!onRotateWallY(wallIndex))
+			while (!onRotateWallY(wallIndex))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
 			}
 			record += "RY\n";
 			break;
 		case 2:
-			while(!onRotateWallZ(wallIndex))
+			while (!onRotateWallZ(wallIndex))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
 			}
@@ -375,16 +380,12 @@ inline void shuffleCube() {
 	KEYBOARD_ACTIVE = true;
 }
 
-inline void startShuffling()
+inline void startMix()
 {
 	KEYBOARD_ACTIVE = false;
-	mixer = std::thread(&shuffleCube);
-	mixer.detach();
-}
-
-inline void solveCube() {
-	std::cout << "Solve cube." << std::endl;
-
+	isMixerReady = false;
+	mixerThread = std::thread(&shuffleCube);
+	mixerThread.detach();
 }
 
 inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -467,7 +468,7 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		onAngleMultiplyClick();
 		break;
 	case GLFW_KEY_M:
-		startShuffle = true;
+		isMixerReady = true;
 		break;
 	case GLFW_KEY_S:
 		solveCube();

@@ -14,11 +14,6 @@ using namespace glm;
 static const int DISPLAY_WIDTH = 800;
 static const int DISPLAY_HEIGHT = 800;
 
-void f()
-{
-	shuffleCube();
-}
-
 int main(int argc, char** argv)
 {
 	Display display(DISPLAY_WIDTH, DISPLAY_HEIGHT, "OpenGL");
@@ -129,16 +124,17 @@ int main(int argc, char** argv)
 	}
 
 	angles = new vec3*[3];
-	for (int i = 0; i < 3; i++) {
+	for (auto i = 0; i < 3; i++) {
 		angles[i] = new vec3[MATRIX_SIZE];
-		for (int j = 0; j < MATRIX_SIZE; j++) {
+		for (auto j = 0; j < MATRIX_SIZE; j++) {
 			angles[i][j] = vec3(0);
 		}
 	}
 
 	glm::mat4 M, MVP;
-	glfwSetKeyCallback(display.m_window, key_callback);
 	int x, y, z;
+
+	glfwSetKeyCallback(display.m_window, key_callback);
 	while (!glfwWindowShouldClose(display.m_window))
 	{
 		Sleep(3);
@@ -161,7 +157,7 @@ int main(int argc, char** argv)
 					auto translate = translates[x][y][z];
 					auto rotate = glm::interpolate(rotates_anim[x][y][z], rotates[x][y][z], interpolations[x][y][z]);
 					if (interpolations[x][y][z] < 1) {
-						interpolations[x][y][z] += 0.01;
+						interpolations[x][y][z] += 0.05;
 					}
 					else {
 						interpolations[x][y][z] = 1;
@@ -178,10 +174,9 @@ int main(int argc, char** argv)
 		display.SwapBuffers();
 		glfwPollEvents();
 
-		if (startShuffle)
+		if (isMixerReady)
 		{
-			startShuffle = false;
-			startShuffling();
+			startMix();
 		}
 	}
 

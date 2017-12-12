@@ -1,22 +1,20 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (forClass3D.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   main.cpp
 c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(13): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(177): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(191): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(199): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(220): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(234): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(242): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(263): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(276): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(284): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(310): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(317): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(325): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(157): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(158): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(159): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(164): warning C4305: '+=': truncation from 'double' to 'float'
-LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
-glew32sd.lib(glew.obj) : warning LNK4099: PDB 'vc110.pdb' was not found with 'glew32sd.lib(glew.obj)' or at 'C:\Users\Tal\Source\Repos\RubiksCube\Debug\vc110.pdb'; linking object as if no debug info
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(176): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(190): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(198): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(219): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(233): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(241): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(262): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(275): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(283): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(309): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(316): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\inputmanager.h(328): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(153): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(154): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(155): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\tal\source\repos\rubikscube\forclass3d\main.cpp(160): warning C4305: '+=': truncation from 'double' to 'float'
   forClass3D.vcxproj -> C:\Users\Tal\Source\Repos\RubiksCube\Debug\RubiksCube.exe

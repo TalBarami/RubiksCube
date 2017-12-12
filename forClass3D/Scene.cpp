@@ -38,7 +38,7 @@ glm::mat4 Scene::animateX()
 {
 	auto result = glm::interpolate(sceneRotateX_anim, sceneRotateX, sceneRotateInterpolationX);
 	if (sceneRotateInterpolationX < 1) {
-		sceneRotateInterpolationX += 0.01;
+		sceneRotateInterpolationX += 0.05;
 	} else
 	{
 		sceneRotateInterpolationX = 1;
@@ -51,7 +51,7 @@ glm::mat4 Scene::animateY()
 {
 	auto result = glm::interpolate(sceneRotateY_anim, sceneRotateY, sceneRotateInterpolationY);
 	if (sceneRotateInterpolationY < 1) {
-		sceneRotateInterpolationY += 0.01;
+		sceneRotateInterpolationY += 0.05;
 	}
 	else
 	{
