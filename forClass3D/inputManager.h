@@ -3,6 +3,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Scene.h"
+#include <thread>
+#include <fstream>
 
 using namespace glm;
 
@@ -12,14 +14,15 @@ static const float DELTA = 1.1;
 float WALL_ROTATE_ANGLE = 90;
 int ROTATION_DIRECTION = 1;
 int WALL_ROTATE_INDEX = 0;
-int SLEEP_BETWEEN_STEPS = 0;
 
+bool startShuffle = false;
 bool KEYBOARD_ACTIVE = true;
-int REMAINING_STEPS = 0;
 
 Scene scene;
 mat4 P;
-
+std::thread runner;
+std::thread mixer;
+std::thread solver;
 
 vec3 ***indices;
 mat4 ***translates;
@@ -160,10 +163,11 @@ inline bool verifyWallsVertical(int wall1, int wall2) {
 }
 
 
-inline void onRotateWallX(int wallIndex) {
+inline bool onRotateWallX(int wallIndex) {
 	std::cout << "Rotate wall [" << wallIndex << "][y][z]" << std::endl;
 	if (!verifyWallsVertical(1, 2)) {
-		return;
+		std::cout << "Walls are not vertical to each other." << std::endl;
+		return false;
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++)
@@ -172,7 +176,8 @@ inline void onRotateWallX(int wallIndex) {
 		{
 			int x = indices[wallIndex][i][j].x, y = indices[wallIndex][i][j].y, z = indices[wallIndex][i][j].z;
 			if (interpolations[x][y][z] < 1){
-				return;
+				std::cout << "Wall is currently moving." << std::endl;
+				return false;
 			}
 		}
 	}
@@ -198,13 +203,14 @@ inline void onRotateWallX(int wallIndex) {
 	for (auto i = 0; i < handleTimes; i++) {
 		ROTATION_DIRECTION == 1 ? handleIndicesX_CW(wallIndex) : handleIndicesX_CCW(wallIndex);
 	}
-	
+	return true;
 }
 
-inline void onRotateWallY(int wallIndex) {
+inline bool onRotateWallY(int wallIndex) {
 	std::cout << "Rotate wall [x][" << wallIndex << "][z]" << std::endl;
 	if (!verifyWallsVertical(0, 2)) {
-		return;
+		std::cout << "Walls are not vertical to each other." << std::endl;
+		return false;
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++)
@@ -213,7 +219,8 @@ inline void onRotateWallY(int wallIndex) {
 		{
 			int x = indices[i][wallIndex][j].x, y = indices[i][wallIndex][j].y, z = indices[i][wallIndex][j].z;
 			if (interpolations[x][y][z] < 1 ){
-				return;
+				std::cout << "Wall is currently moving." << std::endl;
+				return false;
 			}
 		}
 	}
@@ -239,12 +246,14 @@ inline void onRotateWallY(int wallIndex) {
 	for (auto i = 0; i < handleTimes; i++) {
 		ROTATION_DIRECTION == 1 ? handleIndicesY_CW(wallIndex) : handleIndicesY_CCW(wallIndex);
 	}
+	return true;
 }
 
-inline void onRotateWallZ(int wallIndex) {
+inline bool onRotateWallZ(int wallIndex) {
 	std::cout << "Rotate wall [x][y][" << wallIndex << "]"  << std::endl;
 	if (!verifyWallsVertical(0, 1)) {
-		return;
+		std::cout << "Walls are not vertical to each other." << std::endl;
+		return false;
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++)
@@ -253,7 +262,8 @@ inline void onRotateWallZ(int wallIndex) {
 		{
 			int x = indices[i][j][wallIndex].x, y = indices[i][j][wallIndex].y, z = indices[i][j][wallIndex].z;
 			if (interpolations[x][y][z] < 1){
-				return;
+				std::cout << "Wall is currently moving." << std::endl;
+				return false;
 			}
 		}
 	}
@@ -278,7 +288,7 @@ inline void onRotateWallZ(int wallIndex) {
 	for (auto i = 0; i < handleTimes; i++) {
 		ROTATION_DIRECTION == 1 ? handleIndicesZ_CW(wallIndex) : handleIndicesZ_CCW(wallIndex);
 	}
-	
+	return true;
 }
 
 inline void onFlipRotateDirectionClick()
@@ -310,47 +320,66 @@ inline void onAngleMultiplyClick()
 
 inline void shuffleCube() {
 	std::cout << "Shuffle." << std::endl;
-	KEYBOARD_ACTIVE = false;
-	REMAINING_STEPS = rand() % 41 + 10;
-	SLEEP_BETWEEN_STEPS = 1;
-
 	auto totalSteps = rand() % 41 + 10; // 10 - 50 random moves;
 	int direction, wallIndex, action;
-
+	std::srand(time(nullptr));
+	auto restBetweenSteps = 500;
+	std::string record = "TOTAL_STEPS=" + std::to_string(totalSteps) + "\n";
 	for (auto i = 0; i < totalSteps; i++)
 	{
-		direction = rand() % 2;
-		wallIndex = rand() % MATRIX_SIZE;
-		action = rand() % 3;
-
+		direction = std::rand() % 2;
+		wallIndex = std::rand() % MATRIX_SIZE;
+		action = std::rand() % 3;
+		std::cout << "Rotate wall [" << action << "][" << wallIndex << "] dir=" << direction << std::endl;
 		if(direction == 1)
 		{
+			record += "FLIP\n";
 			onFlipRotateDirectionClick();
 		}
 
 		onRotateIndexClick(wallIndex);
+		record += "WIND" + std::to_string(wallIndex) + "\n";
 
 		switch(action)
 		{
 		case 0:
-			onRotateWallX(wallIndex);
+			while(!onRotateWallX(wallIndex))
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
+			}
+			record += "RX\n";
 			break;
 		case 1:
-			onRotateWallY(wallIndex);
+			while(!onRotateWallY(wallIndex))
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
+			}
+			record += "RY\n";
 			break;
 		case 2:
-			onRotateWallZ(wallIndex);
+			while(!onRotateWallZ(wallIndex))
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
+			}
+			record += "RZ\n";
 			break;
 		default:
 			break;
 		}
-		Sleep(1000);
 	}
+	std::cout << "Done mixing, recorded steps:" << std::endl;
+	std::cout << record << std::endl;
+	std::ofstream out("mixer_result.txt");
+	out << record;
+	out.close();
+	KEYBOARD_ACTIVE = true;
 }
 
-inline void shuffleStep()
+inline void startShuffling()
 {
-	
+	KEYBOARD_ACTIVE = false;
+	mixer = std::thread(&shuffleCube);
+	mixer.detach();
 }
 
 inline void solveCube() {
@@ -438,7 +467,7 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		onAngleMultiplyClick();
 		break;
 	case GLFW_KEY_M:
-		shuffleCube();
+		startShuffle = true;
 		break;
 	case GLFW_KEY_S:
 		solveCube();

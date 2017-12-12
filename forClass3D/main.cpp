@@ -7,11 +7,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
+#include <thread>
 
 using namespace glm;
 
 static const int DISPLAY_WIDTH = 800;
 static const int DISPLAY_HEIGHT = 800;
+
+void f()
+{
+	shuffleCube();
+}
 
 int main(int argc, char** argv)
 {
@@ -171,11 +177,21 @@ int main(int argc, char** argv)
 
 		display.SwapBuffers();
 		glfwPollEvents();
+
+		if (startShuffle)
+		{
+			startShuffle = false;
+			startShuffling();
+		}
 	}
 
 	return 0;
 }
 
+void rubiksCube()
+{
+	
+}
 
 
 
