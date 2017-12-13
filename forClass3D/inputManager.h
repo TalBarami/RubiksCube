@@ -11,17 +11,32 @@ using namespace glm;
 static const int MATRIX_SIZE = 3;
 static const int CUBE_SIZE = 2;
 static const float DELTA = 1.1;
-float WALL_ROTATE_ANGLE = 90;
-int ROTATION_DIRECTION = 1;
 int WALL_ROTATE_INDEX = 0;
-
+int WALL_ROTATE_DIRECTION = 1;
+float WALL_ROTATE_ANGLE = 90;
 bool KEYBOARD_ACTIVE = true;
+bool RECORD = true;
+
+struct Record
+{
+	int axis;
+	int wall;
+	int direction;
+	float angle;
+
+	Record(int axis, int wall, int direction, float angle) : axis(axis), wall(wall), direction(direction), angle(angle) {}
+};
 
 Scene scene;
 mat4 P;
 
 bool isMixerReady;
 std::thread mixerThread;
+
+bool isSolverReady;
+std::thread solverThread;
+
+std::vector<Record*> recorder;
 
 vec3 ***indices;
 mat4 ***translates;
@@ -30,18 +45,18 @@ mat4 ***rotates_anim;
 float ***interpolations;
 vec3 **angles;
 
-inline void handleIndicesX_CW(int wallIndex) {
+inline void handleIndicesX_CW(int wall) {
 	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			tmp[i][j] = indices[wallIndex][j][i];
+			tmp[i][j] = indices[wall][j][i];
 		}
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			indices[wallIndex][i][j] = tmp[MATRIX_SIZE - i - 1][j];
+			indices[wall][i][j] = tmp[MATRIX_SIZE - i - 1][j];
 		}
 	}
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
@@ -50,18 +65,18 @@ inline void handleIndicesX_CW(int wallIndex) {
 	delete[](tmp);
 }
 
-inline void handleIndicesX_CCW(int wallIndex) {
+inline void handleIndicesX_CCW(int wall) {
 	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			tmp[i][j] = indices[wallIndex][MATRIX_SIZE - i - 1][j];
+			tmp[i][j] = indices[wall][MATRIX_SIZE - i - 1][j];
 		}
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			indices[wallIndex][i][j] = tmp[j][i];
+			indices[wall][i][j] = tmp[j][i];
 		}
 	}
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
@@ -70,18 +85,18 @@ inline void handleIndicesX_CCW(int wallIndex) {
 	delete[](tmp);
 }
 
-inline void handleIndicesY_CW(int wallIndex) {
+inline void handleIndicesY_CW(int wall) {
 	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			tmp[i][j] = indices[j][wallIndex][i];
+			tmp[i][j] = indices[j][wall][i];
 		}
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			indices[i][wallIndex][j] = tmp[i][MATRIX_SIZE - j - 1];
+			indices[i][wall][j] = tmp[i][MATRIX_SIZE - j - 1];
 		}
 	}
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
@@ -90,18 +105,18 @@ inline void handleIndicesY_CW(int wallIndex) {
 	delete[](tmp);
 }
 
-inline void handleIndicesY_CCW(int wallIndex) {
+inline void handleIndicesY_CCW(int wall) {
 	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			tmp[i][j] = indices[i][wallIndex][MATRIX_SIZE - j - 1];
+			tmp[i][j] = indices[i][wall][MATRIX_SIZE - j - 1];
 		}
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			indices[i][wallIndex][j] = tmp[j][i];
+			indices[i][wall][j] = tmp[j][i];
 		}
 	}
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
@@ -110,18 +125,18 @@ inline void handleIndicesY_CCW(int wallIndex) {
 	delete[](tmp);
 }
 
-inline void handleIndicesZ_CW(int wallIndex) {
+inline void handleIndicesZ_CW(int wall) {
 	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			tmp[i][j] = indices[j][i][wallIndex];
+			tmp[i][j] = indices[j][i][wall];
 		}
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			indices[i][j][wallIndex] = tmp[MATRIX_SIZE - i - 1][j];
+			indices[i][j][wall] = tmp[MATRIX_SIZE - i - 1][j];
 		}
 	}
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
@@ -130,18 +145,18 @@ inline void handleIndicesZ_CW(int wallIndex) {
 	delete[](tmp);
 }
 
-inline void handleIndicesZ_CCW(int wallIndex) {
+inline void handleIndicesZ_CCW(int wall) {
 	auto **tmp = new vec3*[MATRIX_SIZE];
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		tmp[i] = new vec3[MATRIX_SIZE];
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			tmp[i][j] = indices[MATRIX_SIZE - i - 1][j][wallIndex];
+			tmp[i][j] = indices[MATRIX_SIZE - i - 1][j][wall];
 		}
 	}
 
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
 		for (auto j = 0; j < MATRIX_SIZE; j++) {
-			indices[i][j][wallIndex] = tmp[j][i];
+			indices[i][j][wall] = tmp[j][i];
 		}
 	}
 	for (auto i = 0; i < MATRIX_SIZE; i++) {
@@ -162,8 +177,8 @@ inline bool verifyWallsVertical(int wall1, int wall2) {
 }
 
 
-inline bool onRotateWallX(int wallIndex) {
-	std::cout << "Rotate wall [" << wallIndex << "][y][z]" << std::endl;
+inline bool onRotateWallX(int wall) {
+	std::cout << "Rotate wall [" << wall << "][y][z]" << std::endl;
 	if (!verifyWallsVertical(1, 2)) {
 		std::cout << "Walls are not vertical to each other." << std::endl;
 		return false;
@@ -173,7 +188,7 @@ inline bool onRotateWallX(int wallIndex) {
 	{
 		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			int x = indices[wallIndex][i][j].x, y = indices[wallIndex][i][j].y, z = indices[wallIndex][i][j].z;
+			int x = indices[wall][i][j].x, y = indices[wall][i][j].y, z = indices[wall][i][j].z;
 			if (interpolations[x][y][z] < 1){
 				std::cout << "Wall is currently moving." << std::endl;
 				return false;
@@ -181,32 +196,38 @@ inline bool onRotateWallX(int wallIndex) {
 		}
 	}
 
-	std::cout << "added " << (ROTATION_DIRECTION * WALL_ROTATE_ANGLE) << " to " << angles[0][wallIndex].x << std::endl;
-	angles[0][wallIndex].x += (ROTATION_DIRECTION * WALL_ROTATE_ANGLE);
+	std::cout << "added " << (WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE) << " to " << angles[0][wall].x << std::endl;
+	angles[0][wall].x += (WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE);
 	for (auto i = 0; i < MATRIX_SIZE; i++)
 	{
 		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			int x = indices[wallIndex][i][j].x, y = indices[wallIndex][i][j].y, z = indices[wallIndex][i][j].z;
-			auto temp = glm::rotate(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(1.0f, 0.0f, 0.0f));
+			int x = indices[wall][i][j].x, y = indices[wall][i][j].y, z = indices[wall][i][j].z;
+			auto temp = glm::rotate(float(WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE), vec3(1.0f, 0.0f, 0.0f));
 			rotates_anim[x][y][z] = rotates[x][y][z];
 			rotates[x][y][z] = temp * rotates[x][y][z];
 			interpolations[x][y][z] = 0;
 		}
 	}
 
-	int handleTimes = angles[0][wallIndex].x / 90;
-	angles[0][wallIndex].x -= handleTimes * 90;
+	int handleTimes = angles[0][wall].x / 90;
+	angles[0][wall].x -= handleTimes * 90;
 	handleTimes = abs(handleTimes);
-	std::cout << "handle times: " << handleTimes << " new angle: " << angles[0][wallIndex].x << std::endl;
+	std::cout << "handle times: " << handleTimes << " new angle: " << angles[0][wall].x << std::endl;
 	for (auto i = 0; i < handleTimes; i++) {
-		ROTATION_DIRECTION == 1 ? handleIndicesX_CW(wallIndex) : handleIndicesX_CCW(wallIndex);
+		WALL_ROTATE_DIRECTION == 1 ? handleIndicesX_CW(wall) : handleIndicesX_CCW(wall);
+	}
+
+	if (RECORD)
+	{
+		auto r = new Record(0, wall, WALL_ROTATE_DIRECTION, WALL_ROTATE_ANGLE);
+		recorder.push_back(r);
 	}
 	return true;
 }
 
-inline bool onRotateWallY(int wallIndex) {
-	std::cout << "Rotate wall [x][" << wallIndex << "][z]" << std::endl;
+inline bool onRotateWallY(int wall) {
+	std::cout << "Rotate wall [x][" << wall << "][z]" << std::endl;
 	if (!verifyWallsVertical(0, 2)) {
 		std::cout << "Walls are not vertical to each other." << std::endl;
 		return false;
@@ -216,7 +237,7 @@ inline bool onRotateWallY(int wallIndex) {
 	{
 		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			int x = indices[i][wallIndex][j].x, y = indices[i][wallIndex][j].y, z = indices[i][wallIndex][j].z;
+			int x = indices[i][wall][j].x, y = indices[i][wall][j].y, z = indices[i][wall][j].z;
 			if (interpolations[x][y][z] < 1 ){
 				std::cout << "Wall is currently moving." << std::endl;
 				return false;
@@ -224,32 +245,38 @@ inline bool onRotateWallY(int wallIndex) {
 		}
 	}
 
-	std::cout << "added " << (ROTATION_DIRECTION * WALL_ROTATE_ANGLE) << " to " << angles[1][wallIndex].y << std::endl;
-	angles[1][wallIndex].y += (ROTATION_DIRECTION * WALL_ROTATE_ANGLE);
+	std::cout << "added " << (WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE) << " to " << angles[1][wall].y << std::endl;
+	angles[1][wall].y += (WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE);
 	for (auto i = 0; i < MATRIX_SIZE; i++)
 	{
 		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			int x = indices[i][wallIndex][j].x, y = indices[i][wallIndex][j].y, z = indices[i][wallIndex][j].z;
-			auto temp = glm::rotate(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 1.0f, 0.0f));
+			int x = indices[i][wall][j].x, y = indices[i][wall][j].y, z = indices[i][wall][j].z;
+			auto temp = glm::rotate(float(WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 1.0f, 0.0f));
 			rotates_anim[x][y][z] = rotates[x][y][z];
 			rotates[x][y][z] = temp * rotates[x][y][z];
 			interpolations[x][y][z] = 0;
 		}
 	}
 
-	int handleTimes = angles[1][wallIndex].y / 90;
-	angles[1][wallIndex].y -= handleTimes * 90;
+	int handleTimes = angles[1][wall].y / 90;
+	angles[1][wall].y -= handleTimes * 90;
 	handleTimes = abs(handleTimes);
-	std::cout << "handle times: " << handleTimes << " new angle: " << angles[1][wallIndex].y << std::endl;
+	std::cout << "handle times: " << handleTimes << " new angle: " << angles[1][wall].y << std::endl;
 	for (auto i = 0; i < handleTimes; i++) {
-		ROTATION_DIRECTION == 1 ? handleIndicesY_CW(wallIndex) : handleIndicesY_CCW(wallIndex);
+		WALL_ROTATE_DIRECTION == 1 ? handleIndicesY_CW(wall) : handleIndicesY_CCW(wall);
+	}
+
+	if (RECORD)
+	{
+		auto r = new Record(1, wall, WALL_ROTATE_DIRECTION, WALL_ROTATE_ANGLE);
+		recorder.push_back(r);
 	}
 	return true;
 }
 
-inline bool onRotateWallZ(int wallIndex) {
-	std::cout << "Rotate wall [x][y][" << wallIndex << "]"  << std::endl;
+inline bool onRotateWallZ(int wall) {
+	std::cout << "Rotate wall [x][y][" << wall << "]"  << std::endl;
 	if (!verifyWallsVertical(0, 1)) {
 		std::cout << "Walls are not vertical to each other." << std::endl;
 		return false;
@@ -259,33 +286,39 @@ inline bool onRotateWallZ(int wallIndex) {
 	{
 		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			int x = indices[i][j][wallIndex].x, y = indices[i][j][wallIndex].y, z = indices[i][j][wallIndex].z;
+			int x = indices[i][j][wall].x, y = indices[i][j][wall].y, z = indices[i][j][wall].z;
 			if (interpolations[x][y][z] < 1){
 				std::cout << "Wall is currently moving." << std::endl;
 				return false;
 			}
 		}
 	}
-	std::cout << "added " << (ROTATION_DIRECTION * WALL_ROTATE_ANGLE) << " to " << angles[2][wallIndex].z << std::endl;
-	angles[2][wallIndex].z += (ROTATION_DIRECTION * WALL_ROTATE_ANGLE);
+	std::cout << "added " << (WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE) << " to " << angles[2][wall].z << std::endl;
+	angles[2][wall].z += (WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE);
 	for (auto i = 0; i < MATRIX_SIZE; i++)
 	{
 		for (auto j = 0; j < MATRIX_SIZE; j++)
 		{
-			int x = indices[i][j][wallIndex].x, y = indices[i][j][wallIndex].y, z = indices[i][j][wallIndex].z;
-			auto temp = glm::rotate(float(ROTATION_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 0.0f, 1.0f));
+			int x = indices[i][j][wall].x, y = indices[i][j][wall].y, z = indices[i][j][wall].z;
+			auto temp = glm::rotate(float(WALL_ROTATE_DIRECTION * WALL_ROTATE_ANGLE), vec3(0.0f, 0.0f, 1.0f));
 			rotates_anim[x][y][z] = rotates[x][y][z];
 			rotates[x][y][z] = temp * rotates[x][y][z];
 			interpolations[x][y][z] = 0;
 		}
 	}
 
-	int handleTimes = angles[2][wallIndex].z / 90;
-	angles[2][wallIndex].z -= handleTimes * 90;
+	int handleTimes = angles[2][wall].z / 90;
+	angles[2][wall].z -= handleTimes * 90;
 	handleTimes = abs(handleTimes);
-	std::cout << "handle times: " << handleTimes << " new angle: " << angles[2][wallIndex].z << std::endl;
+	std::cout << "handle times: " << handleTimes << " new angle: " << angles[2][wall].z << std::endl;
 	for (auto i = 0; i < handleTimes; i++) {
-		ROTATION_DIRECTION == 1 ? handleIndicesZ_CW(wallIndex) : handleIndicesZ_CCW(wallIndex);
+		WALL_ROTATE_DIRECTION == 1 ? handleIndicesZ_CW(wall) : handleIndicesZ_CCW(wall);
+	}
+
+	if(RECORD)
+	{
+		auto r = new Record(2, wall, WALL_ROTATE_DIRECTION, WALL_ROTATE_ANGLE);
+		recorder.push_back(r);
 	}
 	return true;
 }
@@ -293,7 +326,7 @@ inline bool onRotateWallZ(int wallIndex) {
 inline void onFlipRotateDirectionClick()
 {
 	std::cout << "Flip rotate direction." << std::endl;
-	ROTATION_DIRECTION *= -1;
+	WALL_ROTATE_DIRECTION *= -1;
 }
 
 inline void onRotateIndexClick(int index) {
@@ -317,11 +350,6 @@ inline void onAngleMultiplyClick()
 	std::cout << "New rotation angle: " << WALL_ROTATE_ANGLE << std::endl;
 }
 
-inline void solveCube() {
-	std::cout << "Solve cube." << std::endl;
-
-}
-
 inline void shuffleCube()
 {
 	std::cout << "Shuffle." << std::endl;
@@ -338,12 +366,10 @@ inline void shuffleCube()
 		std::cout << "Rotate wall [" << action << "][" << wallIndex << "] dir=" << direction << std::endl;
 		if (direction == 1)
 		{
-			record += "FLIP\n";
 			onFlipRotateDirectionClick();
 		}
 
 		onRotateIndexClick(wallIndex);
-		record += "WIND" + std::to_string(wallIndex) + "\n";
 
 		switch (action)
 		{
@@ -352,25 +378,36 @@ inline void shuffleCube()
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
 			}
-			record += "RX\n";
 			break;
 		case 1:
 			while (!onRotateWallY(wallIndex))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
 			}
-			record += "RY\n";
 			break;
 		case 2:
 			while (!onRotateWallZ(wallIndex))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
 			}
-			record += "RZ\n";
 			break;
 		default:
 			break;
 		}
+	}
+
+	std::cout << "Total recorded: " << recorder.size() << ", Total steps: " << totalSteps << std::endl;
+	int start = recorder.size() - 1;
+	int end = recorder.size() - totalSteps;
+	for (auto i = start; i >= end; i--)
+	{
+		std::cout << "Record number: " << i << std::endl;
+		auto r = recorder.at(i);
+		record += "AXIS:" + std::to_string(r->axis);
+		record += ";  WALL:" + std::to_string(r->wall);
+		record += ";  DIRECTION:" + std::to_string(r->direction);
+		record += ";  ANGLE:" + std::to_string(r->angle);
+		record += "\n";
 	}
 	std::cout << "Done mixing, recorded steps:" << std::endl;
 	std::cout << record << std::endl;
@@ -386,6 +423,76 @@ inline void startMix()
 	isMixerReady = false;
 	mixerThread = std::thread(&shuffleCube);
 	mixerThread.detach();
+}
+
+inline void solveCube()
+{
+	std::cout << "Solve cube." << std::endl;
+	auto restBetweenSteps = 500;
+	std::string record;
+	while(!recorder.empty())
+	{
+		auto r = recorder.back();
+		std::cout << "AXIS=" << r->axis << "  WALL=" << r->wall << "   ANGLE=" << r->angle << "   DIRECTION=" << r->direction;
+		if(r->angle != WALL_ROTATE_ANGLE)
+		{
+			r->angle < WALL_ROTATE_ANGLE ? onAngleMultiplyClick() : onAngleDivisionClick();
+		}
+
+		if(r->direction == WALL_ROTATE_DIRECTION)
+		{
+			onFlipRotateDirectionClick();
+		}
+
+		if(r->wall != WALL_ROTATE_INDEX)
+		{
+			onRotateIndexClick(r->wall);
+		}
+
+		switch (r->axis)
+		{
+		case 0:
+			while (!onRotateWallX(r->wall))
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
+			}
+			break;
+		case 1:
+			while (!onRotateWallY(r->wall))
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
+			}
+			break;
+		case 2:
+			while (!onRotateWallZ(r->wall))
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(restBetweenSteps));
+			}
+			break;
+		default:
+			break;
+		}
+		//delete(r);
+		recorder.pop_back();
+	}
+
+	std::cout << "Done solving, recorded steps:" << std::endl;
+	std::cout << record << std::endl;
+	std::ofstream out("solver_result.txt");
+	out << record;
+	out.close();
+
+	KEYBOARD_ACTIVE = true;
+	RECORD = true;
+}
+
+inline void startSolve()
+{
+	KEYBOARD_ACTIVE = false;
+	RECORD = false;
+	isSolverReady = false;
+	solverThread = std::thread(&solveCube);
+	solverThread.detach();
 }
 
 inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -471,12 +578,12 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		isMixerReady = true;
 		break;
 	case GLFW_KEY_S:
-		solveCube();
+		isSolverReady = true;
 		break;
 	case GLFW_KEY_ESCAPE:
 		std::cout << "Exit program." << std::endl;
-		for (int i = 0; i < MATRIX_SIZE; i++) {
-			for (int j = 0; j < MATRIX_SIZE; j++) {
+		for (auto i = 0; i < MATRIX_SIZE; i++) {
+			for (auto j = 0; j < MATRIX_SIZE; j++) {
 				delete(translates[i][j]);
 				delete(rotates[i][j]);
 				delete(rotates_anim[i][j]);
@@ -489,7 +596,7 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			delete(indices[i]);
 			delete(interpolations[i]);
 		}
-		for (int i = 0; i < 3; i++) {
+		for (auto i = 0; i < 3; i++) {
 			delete(angles[i]);
 		}
 		delete(translates);

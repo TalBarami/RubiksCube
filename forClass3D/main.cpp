@@ -178,6 +178,11 @@ int main(int argc, char** argv)
 		{
 			startMix();
 		}
+
+		if(isSolverReady)
+		{
+			startSolve();
+		}
 	}
 
 	return 0;
