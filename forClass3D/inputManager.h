@@ -180,7 +180,6 @@ inline bool verifyWallsVertical(int wall1, int wall2) {
 inline bool onRotateWallX(int wall) {
 	std::cout << "Rotate wall [" << wall << "][y][z]" << std::endl;
 	if (!verifyWallsVertical(1, 2)) {
-		std::cout << "Walls are not vertical to each other." << std::endl;
 		return false;
 	}
 
@@ -229,7 +228,6 @@ inline bool onRotateWallX(int wall) {
 inline bool onRotateWallY(int wall) {
 	std::cout << "Rotate wall [x][" << wall << "][z]" << std::endl;
 	if (!verifyWallsVertical(0, 2)) {
-		std::cout << "Walls are not vertical to each other." << std::endl;
 		return false;
 	}
 
@@ -278,7 +276,6 @@ inline bool onRotateWallY(int wall) {
 inline bool onRotateWallZ(int wall) {
 	std::cout << "Rotate wall [x][y][" << wall << "]"  << std::endl;
 	if (!verifyWallsVertical(0, 1)) {
-		std::cout << "Walls are not vertical to each other." << std::endl;
 		return false;
 	}
 
@@ -357,7 +354,11 @@ inline void shuffleCube()
 	int direction, wallIndex, action;
 	auto totalSteps = rand() % (10 * MATRIX_SIZE) + 20;
 	auto restBetweenSteps = 500;
-	auto record = "TOTAL_STEPS=" + std::to_string(totalSteps) + "\n";
+	std::string record = "";
+	while(WALL_ROTATE_ANGLE != 90)
+	{
+		WALL_ROTATE_ANGLE < 90 ? onAngleMultiplyClick() : onAngleDivisionClick();
+	}
 	for (auto i = 0; i < totalSteps; i++)
 	{
 		direction = std::rand() % 2;
@@ -403,12 +404,12 @@ inline void shuffleCube()
 	{
 		std::cout << "Record number: " << i << std::endl;
 		auto r = recorder.at(i);
-		record += "AXIS:" + std::to_string(r->axis);
-		record += ";  WALL:" + std::to_string(r->wall);
-		record += ";  DIRECTION:" + std::to_string(r->direction);
-		record += ";  ANGLE:" + std::to_string(r->angle);
-		record += "\n";
+		record += "AXIS:" + std::to_string(r->axis) +
+			";  WALL:" + std::to_string(r->wall) +
+			";  DIRECTION:" + std::to_string(r->direction) +
+			";  ANGLE:" + std::to_string(r->angle) + "\n";
 	}
+	record += "TOTAL_STEPS=" + std::to_string(totalSteps) + "\n";
 	std::cout << "Done mixing, recorded steps:" << std::endl;
 	std::cout << record << std::endl;
 	std::ofstream out("mixer_result.txt");
@@ -429,6 +430,7 @@ inline void solveCube()
 {
 	std::cout << "Solve cube." << std::endl;
 	auto restBetweenSteps = 500;
+	auto totalSteps = 0;
 	std::string record;
 	while(!recorder.empty())
 	{
@@ -436,7 +438,7 @@ inline void solveCube()
 		std::cout << "AXIS=" << r->axis << "  WALL=" << r->wall << "   ANGLE=" << r->angle << "   DIRECTION=" << r->direction;
 		if(r->angle != WALL_ROTATE_ANGLE)
 		{
-			r->angle < WALL_ROTATE_ANGLE ? onAngleMultiplyClick() : onAngleDivisionClick();
+			r->angle < WALL_ROTATE_ANGLE ? onAngleDivisionClick() : onAngleMultiplyClick();
 		}
 
 		if(r->direction == WALL_ROTATE_DIRECTION)
@@ -472,10 +474,14 @@ inline void solveCube()
 		default:
 			break;
 		}
-		//delete(r);
+		record += "AXIS:" + std::to_string(r->axis) +
+			";  WALL:" + std::to_string(r->wall) +
+			";  DIRECTION:" + std::to_string(WALL_ROTATE_DIRECTION) +
+			";  ANGLE:" + std::to_string(r->angle) + "\n";
 		recorder.pop_back();
+		totalSteps++;
 	}
-
+	record += "TOTAL_STEPS=" + std::to_string(totalSteps) + "\n";
 	std::cout << "Done solving, recorded steps:" << std::endl;
 	std::cout << record << std::endl;
 	std::ofstream out("solver_result.txt");

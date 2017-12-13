@@ -134,6 +134,9 @@ int main(int argc, char** argv)
 	glm::mat4 M, MVP;
 	int x, y, z;
 
+	scene.rotateCubeX(-1);
+	scene.rotateCubeY(-1);
+
 	glfwSetKeyCallback(display.m_window, key_callback);
 	while (!glfwWindowShouldClose(display.m_window))
 	{
