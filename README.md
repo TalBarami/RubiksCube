@@ -9,5 +9,13 @@ Usage:
 * A to multiply the rotation angle by 2, up to 180.
 * Z to divide the rotation angle by 2, down to 1.40625.
 * Use the numbers 1 - MATRIX_SIZE to select the wall index you would like to rotate.
-* It is possible to change the cube size from 2 to 9, change global variable MATRIX_SIZE;
 * Click M to mix the cube. S to solve the cube.
+
+
+![cube](https://github.com/TalBarami/RubiksCube/blob/master/resources/cube.png "3x3")
+
+
+* It is possible to change the cube size from 2 to 9, change global variable MATRIX_SIZE:
+
+
+![cube2](https://github.com/TalBarami/RubiksCube/blob/master/resources/cube2.png "9x9")
